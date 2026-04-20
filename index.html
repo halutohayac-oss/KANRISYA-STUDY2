@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="管理業務">
+<title>管理業務主任者 学習ダッシュボード</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #1a1d27;
+  --bg3: #22263a;
+  --card: #1e2235;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f2ff;
+  --text2: #8890b0;
+  --text3: #555e80;
+  --blue: #4f8ef7;
+  --blue2: #1a3a7a;
+  --blue-light: #dbeafe;
+  --green: #34d399;
+  --green2: #064e3b;
+  --amber: #fbbf24;
+  --amber2: #78350f;
+  --red: #f87171;
+  --red2: #7f1d1d;
+  --purple: #a78bfa;
+  --teal: #2dd4bf;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; background: var(--bg); }
+body {
+  font-family: 'Helvetica Neue', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: calc(70px + var(--safe-bottom));
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── ヘッダー ── */
+.header {
+  background: var(--bg2);
+  border-bottom: 0.5px solid var(--border);
+  padding: 52px 20px 14px;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-inner { display: flex; align-items: center; justify-content: space-between; }
+.header-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+.header-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.exam-chip {
+  background: var(--blue2);
+  color: var(--blue);
+  font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 20px;
+}
+
+/* ── ページ ── */
+.page { display: none; padding: 16px 16px 0; animation: fadeIn .2s ease; }
+.page.on { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ── ボトムナビ ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg2);
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-bottom);
+  z-index: 100;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 0 6px; gap: 3px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 10px;
+  transition: color .15s;
+}
+.nav-btn.on { color: var(--blue); }
+.nav-btn svg { width: 22px; height: 22px; }
+
+/* ── メトリクス ── */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.metric {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.metric .lb { font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+.metric .vl { font-size: 26px; font-weight: 700; letter-spacing: -1px; }
+.metric .nt { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.metric.accent { background: var(--blue2); border-color: rgba(79,142,247,0.3); }
+.metric.accent .vl { color: var(--blue); }
+
+/* ── カード ── */
+.card {
+  background: var(--card);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  margin-bottom: 12px; letter-spacing: -0.2px;
+}
+
+/* ── バー ── */
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bar-label { font-size: 11px; color: var(--text2); width: 110px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; background: var(--bg3); border-radius: 4px; height: 20px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+.bar-fill span { font-size: 10px; font-weight: 600; color: #fff; }
+
+/* ── バッジ ── */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+.b-r { background: var(--red2); color: var(--red); }
+.b-a { background: var(--amber2); color: var(--amber); }
+.b-g { background: var(--green2); color: var(--green); }
+.b-b { background: var(--blue2); color: var(--blue); }
+
+/* ── フォーム ── */
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; }
+.form-control {
+  width: 100%;
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 15px;
+  -webkit-appearance: none;
+}
+.form-control:focus { outline: none; border-color: var(--blue); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-primary {
+  width: 100%;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+  letter-spacing: -0.2px;
+}
+.btn-primary:active { opacity: .85; transform: scale(.98); }
+
+/* ── ログテーブル ── */
+.log-list { display: flex; flex-direction: column; gap: 8px; }
+.log-item {
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.log-rate {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.log-info { flex: 1; min-width: 0; }
+.log-subj { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.log-memo { font-size: 11px; color: var(--text3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.del-btn { background: none; border: none; color: var(--text3); font-size: 20px; padding: 4px 8px; cursor: pointer; }
+
+/* ── カレンダー ── */
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-month-label { font-size: 13px; font-weight: 600; }
+.cal-nav { background: none; border: none; color: var(--text2); font-size: 18px; padding: 4px 8px; cursor: pointer; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-head { font-size: 10px; color: var(--text3); text-align: center; padding: 4px 0; }
+.cal-day {
+  aspect-ratio: 1; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--text2);
+  cursor: pointer;
+}
+.cal-day.has-log { background: var(--blue2); color: var(--blue); font-weight: 600; }
+.cal-day.today { outline: 2px solid var(--blue); outline-offset: 1px; color: var(--text); }
+.cal-day.empty { pointer-events: none; }
+
+/* ── フェーズブロック ── */
+.phase-block { border-left: 3px solid; padding: 10px 12px; margin-bottom: 10px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; background: var(--bg3); }
+.phase-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.phase-period { font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+.phase-items { font-size: 12px; color: var(--text2); line-height: 1.8; }
+
+/* ── リング ── */
+.rings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+.ring-item { text-align: center; }
+.ring-wrap { position: relative; width: 70px; height: 70px; margin: 0 auto 4px; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.ring-label-inner {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.ring-pct { font-size: 15px; font-weight: 700; }
+.ring-cnt { font-size: 9px; color: var(--text3); }
+.ring-name { font-size: 10px; color: var(--text2); line-height: 1.3; }
+
+/* ── チェックリスト ── */
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 0.5px solid var(--border);
+}
+.check-item:last-child { border-bottom: none; }
+.check-item input[type=checkbox] { width: 18px; height: 18px; margin-top: 1px; flex-shrink: 0; accent-color: var(--blue); }
+.check-item label { font-size: 13px; color: var(--text2); line-height: 1.5; cursor: pointer; }
+.check-item.done label { text-decoration: line-through; color: var(--text3); }
+
+/* ── 今日のアドバイス ── */
+.advice-box {
+  background: linear-gradient(135deg, var(--blue2), rgba(26,58,122,0.4));
+  border: 0.5px solid rgba(79,142,247,0.3);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.advice-label { font-size: 10px; color: var(--blue); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.advice-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+/* ── 空状態 ── */
+.empty-state { text-align: center; padding: 30px 16px; color: var(--text3); font-size: 13px; }
+
+/* ── セクション見出し ── */
+.section-head { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin: 16px 0 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-title">管理業務主任者</div>
+      <div class="header-sub">学習ダッシュボード 2026</div>
+    </div>
+    <div class="exam-chip" id="days-chip">試験まで―日</div>
+  </div>
+</div>
+
+<!-- ページ: ホーム -->
+<div id="p-home" class="page on">
+  <div class="advice-box">
+    <div class="advice-label">Today</div>
+    <div class="advice-text" id="today-advice">学習計画を読み込んでいます...</div>
+  </div>
+  <div class="metrics" id="home-metrics"></div>
+  <div class="card">
+    <div class="card-title">分野別 習熟度</div>
+    <div id="home-bars"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">今月のカレンダー</div>
+    <div id="home-calendar"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">直近の記録</div>
+    <div id="home-recent"></div>
+  </div>
+</div>
+
+<!-- ページ: 記録 -->
+<div id="p-record" class="page">
+  <div class="card">
+    <div class="card-title">学習を記録する</div>
+    <div class="form-group">
+      <label class="form-label">日付</label>
+      <input type="date" id="inp-date" class="form-control">
+    </div>
+    <div class="form-group">
+      <label class="form-label">分野</label>
+      <select id="inp-subj" class="form-control">
+        <option>民法・法律基礎</option>
+        <option>標準管理委託契約書</option>
+        <option>区分所有法</option>
+        <option>標準管理規約</option>
+        <option>管理適正化法</option>
+        <option>会計・簿記</option>
+        <option>長期修繕計画GL</option>
+        <option>建築基準法・消防法</option>
+        <option>建築・設備</option>
+        <option>借地借家法・宅建業法</option>
+        <option>過去問（総合）</option>
+      </select>
+    </div>
+    <div class="form-row form-group">
+      <div>
+        <label class="form-label">問題数</label>
+        <input type="number" id="inp-total" class="form-control" placeholder="20" min="1" max="50">
+      </div>
+      <div>
+        <label class="form-label">正解数</label>
+        <input type="number" id="inp-correct" class="form-control" placeholder="14" min="0" max="50">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ（任意）</label>
+      <input type="text" id="inp-memo" class="form-control" placeholder="気づいたこと、苦手な箇所など">
+    </div>
+    <button class="btn-primary" onclick="addLog()">記録を追加する</button>
+  </div>
+
+  <div class="section-head">全ログ</div>
+  <div id="all-log-list"></div>
+  <div id="no-log2" class="empty-state">まだ記録がありません</div>
+</div>
+
+<!-- ページ: 計画 -->
+<div id="p-plan" class="page">
+  <div class="card">
+    <div class="card-title">フェーズ別 学習ロードマップ</div>
+    <div id="phases-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">今週のチェックリスト</div>
+    <div id="checklist"></div>
+  </div>
+</div>
+
+<!-- ページ: 分野 -->
+<div id="p-subject" class="page">
+  <div class="card">
+    <div class="card-title">分野別 習熟度リング</div>
+    <div class="rings-grid" id="rings-grid"></div>
+  </div>
+  <div id="subj-detail-list"></div>
+</div>
+
+<!-- ボトムナビ -->
+<nav class="bottom-nav">
+  <button class="nav-btn on" onclick="nav('home',this)" id="nb-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    ホーム
+  </button>
+  <button class="nav-btn" onclick="nav('record',this)" id="nb-record">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    記録
+  </button>
+  <button class="nav-btn" onclick="nav('plan',this)" id="nb-plan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    計画
+  </button>
+  <button class="nav-btn" onclick="nav('subject',this)" id="nb-subject">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    分野別
+  </button>
+</nav>
+
+<script>
+const SUBJECTS = [
+  {name:'民法・法律基礎', color:'#f87171', priority:'最重要', target:6},
+  {name:'標準管理委託契約書', color:'#4f8ef7', priority:'最重要', target:8},
+  {name:'区分所有法', color:'#4f8ef7', priority:'最重要', target:9},
+  {name:'標準管理規約', color:'#4f8ef7', priority:'最重要', target:8},
+  {name:'管理適正化法', color:'#34d399', priority:'重要', target:6},
+  {name:'会計・簿記', color:'#fbbf24', priority:'最重要', target:5},
+  {name:'長期修繕計画GL', color:'#34d399', priority:'重要', target:4},
+  {name:'建築基準法・消防法', color:'#8890b0', priority:'標準', target:3},
+  {name:'建築・設備', color:'#8890b0', priority:'標準', target:3},
+  {name:'借地借家法・宅建業法', color:'#8890b0', priority:'標準', target:3},
+  {name:'過去問（総合）', color:'#a78bfa', priority:'演習', target:50},
+];
+
+const PHASES = [
+  {label:'フェーズ1', period:'4〜5月', color:'#4f8ef7',
+   items:['民法基礎（代理・相続・不法行為・保証）','区分所有法の入門','標準管理規約の通読','過去問を読む段階'],
+   goal:'目標 60時間'},
+  {label:'フェーズ2', period:'6〜8月', color:'#fbbf24',
+   items:['標準管理委託契約書（別表含む全条文）','管理適正化法（重要事項・登録・分別管理）','区分所有法（集会・決議要件）','会計仕訳・貸借対照表パターン演習'],
+   goal:'目標 91時間'},
+  {label:'フェーズ3', period:'9〜10月', color:'#f87171',
+   items:['7年分を本番形式（50問・2時間）で解く','間違えた問題の解説を精読','弱点分野の集中復習','正答率70%以上を安定させる'],
+   goal:'目標 60時間'},
+  {label:'フェーズ4', period:'11月〜12/7', color:'#34d399',
+   items:['頻出暗記事項の最終確認','法改正・最新ガイドライン確認','苦手問題のみ集中復習','試験1週間前：全分野総ざらい'],
+   goal:'目標 30時間'},
+];
+
+const CHECKS = [
+  '平日：最低20分以上学習した',
+  '週末：過去問を20〜50問解いた',
+  '間違えた問題の解説を読んだ',
+  '今週の弱点分野を1つ特定した',
+  '学習ログをダッシュボードに記録した',
+];
+
+let logs = JSON.parse(localStorage.getItem('kanri_logs_v2') || '[]');
+function save() { localStorage.setItem('kanri_logs_v2', JSON.stringify(logs)); }
+
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function nav(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('p-' + id).classList.add('on');
+  btn.classList.add('on');
+  render();
+}
+
+function addLog() {
+  const date = document.getElementById('inp-date').value || todayStr();
+  const subj = document.getElementById('inp-subj').value;
+  const total = parseInt(document.getElementById('inp-total').value) || 0;
+  const correct = parseInt(document.getElementById('inp-correct').value) || 0;
+  const memo = document.getElementById('inp-memo').value.trim();
+  if (!total) { alert('問題数を入力してください'); return; }
+  if (correct > total) { alert('正解数は問題数以下にしてください'); return; }
+  logs.unshift({ date, subj, total, correct, memo, id: Date.now() });
+  save();
+  document.getElementById('inp-total').value = '';
+  document.getElementById('inp-correct').value = '';
+  document.getElementById('inp-memo').value = '';
+  alert('記録しました！');
+  render();
+}
+
+function delLog(id) {
+  if (!confirm('この記録を削除しますか？')) return;
+  logs = logs.filter(l => l.id !== id);
+  save(); render();
+}
+
+function getStats() {
+  const total = logs.reduce((s,l) => s + l.total, 0);
+  const correct = logs.reduce((s,l) => s + l.correct, 0);
+  const days = new Set(logs.map(l => l.date)).size;
+  const rate = total ? Math.round(correct / total * 100) : 0;
+  return { total, correct, days, rate };
+}
+
+function getSubjStats(name) {
+  const sl = logs.filter(l => l.subj === name);
+  const total = sl.reduce((s,l) => s + l.total, 0);
+  const correct = sl.reduce((s,l) => s + l.correct, 0);
+  return { total, correct, rate: total ? Math.round(correct / total * 100) : 0 };
+}
+
+function rateColor(r) {
+  if (r >= 70) return '#34d399';
+  if (r >= 50) return '#fbbf24';
+  return '#f87171';
+}
+
+function renderHeader() {
+  const exam = new Date('2026-12-07');
+  const diff = Math.max(0, Math.ceil((exam - new Date()) / 86400000));
+  document.getElementById('days-chip').textContent = '試験まで' + diff + '日';
+}
+
+function renderAdvice() {
+  const m = new Date().getMonth() + 1;
+  let txt = '';
+  if (m <= 5) txt = 'フェーズ1：民法・区分所有法の基礎テキストを読み進める時期です。';
+  else if (m <= 8) txt = 'フェーズ2：管理委託契約書・管理規約の条文を過去問と照らし合わせて学習しましょう。';
+  else if (m <= 10) txt = 'フェーズ3：過去問を本番形式（50問・時間計測）で解く時期です。正答率70%を目指しましょう。';
+  else txt = 'フェーズ4：直前仕上げの時期。頻出暗記事項と苦手問題を集中的に確認しましょう。';
+  document.getElementById('today-advice').textContent = txt;
+}
+
+function renderMetrics() {
+  const s = getStats();
+  const exam = new Date('2026-12-07');
+  const daysLeft = Math.max(0, Math.ceil((exam - new Date()) / 86400000));
+  document.getElementById('home-metrics').innerHTML = `
+    <div class="metric accent">
+      <div class="lb">累計問題数</div>
+      <div class="vl">${s.total}</div>
+      <div class="nt">目標 350問+</div>
+    </div>
+    <div class="metric accent">
+      <div class="lb">通算正答率</div>
+      <div class="vl">${s.rate}<span style="font-size:14px">%</span></div>
+      <div class="nt">目標 72%以上</div>
+    </div>
+    <div class="metric">
+      <div class="lb">学習日数</div>
+      <div class="vl">${s.days}</div>
+      <div class="nt">継続が力</div>
+    </div>
+    <div class="metric">
+      <div class="lb">試験まで</div>
+      <div class="vl">${daysLeft}<span style="font-size:14px">日</span></div>
+      <div class="nt">2026年12月7日</div>
+    </div>
+  `;
+}
+
+function renderBars() {
+  document.getElementById('home-bars').innerHTML = SUBJECTS.slice(0,8).map(s => {
+    const st = getSubjStats(s.name);
+    const w = st.rate ? Math.max(st.rate, 3) + '%' : '3%';
+    return `<div class="bar-row">
+      <span class="bar-label">${s.name.length > 9 ? s.name.slice(0,9)+'…' : s.name}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${w};background:${s.color}">
+          ${st.rate > 15 ? '<span>' + st.rate + '%</span>' : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCalendar() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const logDates = new Set(logs.map(l => l.date));
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const days = ['日','月','火','水','木','金','土'];
+  let html = `<div class="cal-header">
+    <span class="cal-month-label">${y}年${m+1}月</span>
+  </div>
+  <div class="cal-grid">
+    ${days.map(d => `<div class="cal-head">${d}</div>`).join('')}
+    ${Array(firstDay).fill('<div class="cal-day empty"></div>').join('')}
+    ${Array.from({length: daysInMonth}, (_,i) => {
+      const d = i+1;
+      const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const cl = (logDates.has(ds) ? ' has-log' : '') + (ds === todayStr() ? ' today' : '');
+      return `<div class="cal-day${cl}">${d}</div>`;
+    }).join('')}
+  </div>`;
+  document.getElementById('home-calendar').innerHTML = html;
+}
+
+function renderRecent() {
+  const recent = logs.slice(0, 5);
+  if (!recent.length) {
+    document.getElementById('home-recent').innerHTML = '<div class="empty-state">まだ記録がありません<br>「記録」タブから入力してください</div>';
+    return;
+  }
+  document.getElementById('home-recent').innerHTML = `<div class="log-list">${recent.map(l => {
+    const rate = l.total ? Math.round(l.correct / l.total * 100) : 0;
+    const c = rateColor(rate);
+    return `<div class="log-item">
+      <div class="log-rate" style="background:${c}22;color:${c}">${rate}%</div>
+      <div class="log-info">
+        <div class="log-subj">${l.subj}</div>
+        <div class="log-meta">${l.date} ／ ${l.total}問中${l.correct}問正解</div>
+        ${l.memo ? `<div class="log-memo">${l.memo}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderAllLog() {
+  const no = document.getElementById('no-log2');
+  if (!logs.length) {
+    document.getElementById('all-log-list').innerHTML = '';
+    no.style.display = 'block'; return;
+  }
+  no.style.display = 'none';
+  document.getElementById('all-log-list').innerHTML = `<div class="log-list">${logs.map(l => {
+    const rate = l.total ? Math.round(l.correct / l.total * 100) : 0;
+    const c = rateColor(rate);
+    return `<div class="log-item">
+      <div class="log-rate" style="background:${c}22;color:${c}">${rate}%</div>
+      <div class="log-info">
+        <div class="log-subj">${l.subj}</div>
+        <div class="log-meta">${l.date} ／ ${l.total}問中${l.correct}問正解</div>
+        ${l.memo ? `<div class="log-memo">${l.memo}</div>` : ''}
+      </div>
+      <button class="del-btn" onclick="delLog(${l.id})">×</button>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderPhases() {
+  document.getElementById('phases-list').innerHTML = PHASES.map(p => `
+    <div class="phase-block" style="border-color:${p.color}">
+      <div class="phase-title" style="color:${p.color}">${p.label}（${p.period}）</div>
+      <div class="phase-period">${p.goal}</div>
+      <div class="phase-items">${p.items.map(i => '・' + i).join('<br>')}</div>
+    </div>
+  `).join('');
+}
+
+function renderChecklist() {
+  const key = 'kanri_checks_' + new Date().toISOString().slice(0,7);
+  let checks = JSON.parse(localStorage.getItem(key) || '{}');
+  document.getElementById('checklist').innerHTML = CHECKS.map((c,i) => `
+    <div class="check-item${checks[i] ? ' done' : ''}">
+      <input type="checkbox" id="ck${i}" ${checks[i] ? 'checked' : ''}
+        onchange="(function(){var k='${key}';var ch=JSON.parse(localStorage.getItem(k)||'{}');ch[${i}]=this.checked;localStorage.setItem(k,JSON.stringify(ch));this.closest('.check-item').classList.toggle('done',this.checked)}).call(this)">
+      <label for="ck${i}">${c}</label>
+    </div>
+  `).join('');
+}
+
+function renderRings() {
+  const R = 28, circ = 2 * Math.PI * R;
+  document.getElementById('rings-grid').innerHTML = SUBJECTS.slice(0,9).map(s => {
+    const st = getSubjStats(s.name);
+    const dash = circ * st.rate / 100;
+    const name = s.name.replace('・', '\n').replace('（', '\n（');
+    return `<div class="ring-item">
+      <div class="ring-wrap">
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <circle cx="35" cy="35" r="${R}" fill="none" stroke="#22263a" stroke-width="6"/>
+          <circle cx="35" cy="35" r="${R}" fill="none" stroke="${s.color}" stroke-width="6"
+            stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"/>
+        </svg>
+        <div class="ring-label-inner">
+          <span class="ring-pct" style="color:${s.color}">${st.rate}%</span>
+          <span class="ring-cnt">${st.total}問</span>
+        </div>
+      </div>
+      <div class="ring-name">${s.name.slice(0,6)}${s.name.length>6?'…':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSubjDetail() {
+  document.getElementById('subj-detail-list').innerHTML = SUBJECTS.slice(0,10).map(s => {
+    const st = getSubjStats(s.name);
+    const cls = s.priority === '最重要' ? 'b-r' : s.priority === '重要' ? 'b-a' : 'b-g';
+    return `<div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:600">${s.name}</div>
+        <span class="badge ${cls}">${s.priority}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">問題数</div>
+          <div style="font-size:20px;font-weight:700">${st.total}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">正解数</div>
+          <div style="font-size:20px;font-weight:700">${st.correct}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:3px">正答率</div>
+          <div style="font-size:20px;font-weight:700;color:${rateColor(st.rate)}">${st.rate}%</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">年間出題目安：${s.target}問</div>
+    </div>`;
+  }).join('');
+}
+
+function render() {
+  renderHeader();
+  renderAdvice();
+  renderMetrics();
+  renderBars();
+  renderCalendar();
+  renderRecent();
+  renderAllLog();
+  renderPhases();
+  renderChecklist();
+  renderRings();
+  renderSubjDetail();
+}
+
+document.getElementById('inp-date').value = todayStr();
+render();
+</script>
+</body>
+</html>
